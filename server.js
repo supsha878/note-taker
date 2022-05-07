@@ -1,13 +1,16 @@
+// import dependencies
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const util = require('util'); // might remove
+const util = require('util');
 const uniqid = require('uniqid');
 
+// port declaration for roku or for localhost
 const PORT = process.env.PORT || 3001;
 
 const app = express();
 
+// middleware
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
@@ -22,9 +25,12 @@ app.get('/notes', (req, res) => {
     res.sendFile(path.join(__dirname, '/public/notes.html'))
 });
 
+// functions to read, write, and edit database file
+
 // send a promise response to a fetch request
 const readFromFile = util.promisify(fs.readFile);
 
+// write content to JSON file and format
 const writeToFile = (file, content) => {
     fs.writeFile(file, JSON.stringify(content, null, 4), (err) =>
     err ? console.log(err) : console.log('success')
@@ -44,6 +50,7 @@ const appendAndWrite = (content, file) => {
     });
 }
 
+// delete a note object from database based on id argument
 const deleteFromFile = (id, file) => {
     fs.readFile(file, 'utf8', (err, data) => {
         if (err) {
@@ -56,12 +63,15 @@ const deleteFromFile = (id, file) => {
     });
 }
 
-// API routes
+// API routes - CRUD
+
+// R - retrieve data
 app.get('/api/notes', (req, res) => {
     console.info(`${req.method} request received to get notes`);
     readFromFile('./db/db.json').then((data) => res.json(JSON.parse(data)));
 });
 
+// C - create data
 app.post('/api/notes', (req, res) => {
     console.info(`${req.method} request received to post note`);
     const { title, text } = req.body;
@@ -80,6 +90,7 @@ app.post('/api/notes', (req, res) => {
     }
 });
 
+// D - delete data
 app.delete('/api/notes/:id', (req, res) => {
     console.info(`${req.method} request received to delete note`);
     const id = req.body;
@@ -92,6 +103,7 @@ app.delete('/api/notes/:id', (req, res) => {
     }
 });
 
+// port listener
 app.listen(PORT, () =>
     console.log(`App listening at http://localhost:${PORT}`)
 );
